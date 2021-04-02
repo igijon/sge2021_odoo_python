@@ -1,0 +1,227 @@
+<odoo>
+    <data>
+        <!-- explicit list view definition -->
+<!-- Load css File -->
+        <template id="my_custom_css_asset" name="my_custom_css assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/school/static/src/css/style.css"/>
+            </xpath>
+        </template>
+
+        <record model="ir.ui.view" id="school.student_list">
+            <field name="name">school.student list</field>
+            <field name="model">school.student</field>
+            <field name="arch" type="xml">
+                <tree decoration-info="birth_year>2000" decoration-warning="birth_year&lt;1980">
+                    <field name="photo" widget="image" class="prueba"/>
+                    <field name="name"/>
+                    <field name="password"/>
+                    <field name="birth_year" sum="Total"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="school.student_search">
+            <field name="name">school.student search</field>
+            <field name="model">school.student</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="dni"/>
+                    <field name="birth_year" string="Min Year" filter_domain="[('birth_year','>=',self)]"/>
+                    <filter name="adult" string="Adult students" domain="[('birth_year','&lt;=','2002')]"></filter>
+                    <filter name="group_by_classroom" string="Group by classroom"
+                            context="{'group_by': 'classroom'}"></filter>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="school.seminar_calendar">
+            <field name="name">school.seminar calendar</field>
+            <field name="model">school.seminar</field>
+            <field name="arch" type="xml">
+                <calendar string="Seminar calendar" date_start="date"
+                          date_stop="finish"
+                          color="classroom">
+                    <field name="name"/>
+                </calendar>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="school.teacher_list">
+            <field name="name">school.teacher list</field>
+            <field name="model">school.teacher</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="topic"/>
+                    <field name="phone"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="school.student_form">
+            <field name="name">school.student form</field>
+            <field name="model">school.student</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <field name="state" widget="statusbar"></field>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box">
+                            <button type="object" class="oe_stat_button" icon="fa-pencil-square-o"
+                                    name="regenerate_password">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="password" string="Password"/>
+                                    </span>
+                                    <span class="o_stat_text">Password</span>
+                                </div>
+                            </button>
+                        </div>
+                        <field name="photo" widget="image"/>
+                        <group>
+                            <group>
+                                <separator string="Personal Data"></separator>
+                                <field name="name"/>
+                                <field name="birth_year"/>
+                                <field name="password"/>
+                                <field name="dni"/>
+                                <field name="description"/>
+                            </group>
+                            <group>
+                                <separator string="Inscription Data"></separator>
+                                <field name="inscription_date"/>
+                                <field name="last_login"/>
+                                <field name="is_student"/>
+                                <field name="classroom"
+                                       attrs="{'invisible':[('is_student','=',False)],
+                                            'required':[('is_student','=',True)]}"/>
+                                <field name="level"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Teachers">
+                                <field name="teachers">
+                                    <tree>
+                                        <field name="name"/>
+                                        <field name="topic"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="school.quick_create_student_form">
+            <field name="name">school.student form quickcreate</field>
+            <field name="model">school.student</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="name"/>
+                        <field name="birth_year"/>
+                        <field name="classroom"/>
+                        <field name="level"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+
+        <record model="ir.ui.view" id="school.student_kanban">
+            <field name="name">school.student kanban</field>
+            <field name="model">school.student</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="classroom" on_create="quick_create"
+                        quick_create_view="school.quick_create_student_form">
+                    <field name="id"></field>
+                    <field name="classroom"></field>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_color_{{kanban_getcolor(record.classroom.raw_value)}}
+                            oe_kanban_global_click o_kanban_record_has_image_fill">
+                                <a type="open">
+                                    <img width="150" style="padding:5px" class="oe_kanban_image"
+                                         t-att-src="kanban_image('school.student', 'photo', record.id.raw_value)"
+                                         alt="student image"/>
+                                </a>
+                                <div t-attf-class="oe_kanban_content">
+                                    <h4>
+                                        <a type="edit">
+                                            <field name="name"></field>
+                                        </a>
+                                    </h4>
+                                    <ul>
+                                        <li>Classroom:
+                                            <field name="classroom"></field>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- actions opening views on models -->
+
+        <record model="ir.actions.act_window" id="school.action_student_window">
+            <field name="name">school student window</field>
+            <field name="res_model">school.student</field>
+            <field name="view_mode">tree,form,kanban</field>
+        </record>
+
+        <record model="ir.actions.act_window" id="school.action_classroom_window">
+            <field name="name">school classroom window</field>
+            <field name="res_model">school.classroom</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record model="ir.actions.act_window" id="school.action_teacher_window">
+            <field name="name">school teacher window</field>
+            <field name="res_model">school.teacher</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record model="ir.actions.act_window" id="school.action_seminar_window">
+            <field name="name">school seminar window</field>
+            <field name="res_model">school.seminar</field>
+            <field name="view_mode">tree,form,calendar</field>
+        </record>
+        <!-- server action to the one above -->
+        <!--
+            <record model="ir.actions.server" id="school.action_server">
+              <field name="name">school server</field>
+              <field name="model_id" ref="model_school_school"/>
+              <field name="state">code</field>
+              <field name="code">
+                action = {
+                  "type": "ir.actions.act_window",
+                  "view_mode": "tree,form",
+                  "res_model": model._name,
+                }
+              </field>
+            </record>
+        -->
+
+        <!-- Top menu item -->
+        <menuitem name="School" id="school.menu_root"/>
+        <!-- menu categries -->
+        <menuitem name="Management" id="school.menu_1" parent="school.menu_root"/>
+        <!-- actions -->
+        <menuitem name="Students" id="school.menu_student_list" parent="school.menu_1"
+                  action="school.action_student_window"/>
+        <menuitem name="Classrooms" id="school.menu_classroom_list" parent="school.menu_1"
+                  action="school.action_classroom_window"/>
+        <menuitem name="Teachers" id="school.menu_teacher_list" parent="school.menu_1"
+                  action="school.action_teacher_window"/>
+        <menuitem name="Seminars" id="school.menu_seminar_list" parent="school.menu_1"
+                  action="school.action_seminar_window"/>
+    </data>
+</odoo>
+
